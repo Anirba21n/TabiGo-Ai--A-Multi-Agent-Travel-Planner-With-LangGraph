@@ -17,9 +17,11 @@ all coordinated through a LangGraph workflow.
 
 - ✈️ Flight research using AviationStack
 - 🏨 Hotel suggestions using Tavily search
-- 🧠 Multi-agent orchestration with LangGraph
-- 📝 Structured travel itinerary generation
-- 🌐 FastAPI backend with a simple web interface
+- 🌦️ Live destination weather forecast & packing recommendations using OpenWeatherMap
+- 🗺️ Geo-clustered day-by-day route optimization & interactive map using Geoapify and Leaflet.js
+- 🧠 Parallel multi-agent orchestration with LangGraph
+- 📝 Structured travel itinerary generation with one-click PDF export
+- 🌐 FastAPI backend with a modern responsive web interface
 - 💾 Conversation state persistence using PostgreSQL
 - ⚡ LLM-powered responses with Groq
 
@@ -28,12 +30,15 @@ all coordinated through a LangGraph workflow.
 - Python 3.10+
 - FastAPI
 - Jinja2 + HTML/CSS/JavaScript frontend
+- Leaflet.js (Interactive Route Map)
 - LangGraph
 - LangChain
 - Groq LLMs
 - PostgreSQL
 - Tavily API
 - AviationStack API
+- OpenWeatherMap API
+- Geoapify Geocoding API
 
 ## Project Structure
 
@@ -57,6 +62,9 @@ Before running the project locally, make sure you have:
   - Groq
   - Tavily
   - AviationStack
+  -  OpenWeatherMap API
+  - Geoapify Geocoding API
+
 
 ## Environment Variables
 
