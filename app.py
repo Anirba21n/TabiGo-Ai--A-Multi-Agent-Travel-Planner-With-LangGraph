@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 
 from backend import run_travel_agent
@@ -14,8 +15,8 @@ BASE_DIR = Path(__file__).resolve().parent
 
 app = FastAPI(
     title="TripMate AI",
-    description="LangGraph Multi-Agent Travel Planner with FastAPI Frontend",
-    version="1.0.0"
+    description="LangGraph Multi-Agent Travel Planner with Live Weather & Geo Routing",
+    version="1.1.0"
 )
 
 
@@ -31,11 +32,9 @@ templates = Jinja2Templates(
 )
 
 
-
 class TravelRequest(BaseModel):
     message: str
     thread_id: str | None = None
-
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -61,7 +60,8 @@ async def travel_planner(request_data: TravelRequest):
                 }
             )
 
-        result = run_travel_agent(
+        result = await run_in_threadpool(
+            run_travel_agent,
             user_input=user_message,
             thread_id=request_data.thread_id
         )
@@ -73,7 +73,9 @@ async def travel_planner(request_data: TravelRequest):
                 "answer": result["answer"],
                 "flight_results": result["flight_results"],
                 "hotel_results": result["hotel_results"],
+                "weather_results": result.get("weather_results", ""),
                 "itinerary": result["itinerary"],
+                "map_locations": result.get("map_locations", []),
                 "llm_calls": result["llm_calls"],
             }
         )
@@ -91,7 +93,6 @@ async def travel_planner(request_data: TravelRequest):
         )
 
 
-
 @app.get("/health")
 async def health_check():
     return {
@@ -103,7 +104,6 @@ async def health_check():
 @app.get("/favicon.ico")
 async def favicon():
     return JSONResponse(content={})
-
 
 
 if __name__ == "__main__":

@@ -13,6 +13,9 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+    <!-- Leaflet Interactive Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
@@ -29,10 +32,7 @@
         <!-- Top navigation -->
         <nav class="top-nav">
             <div class="brand">
-
                 <span class="brand-mark"><i class="fas fa-plane"></i></span>
-
-
                 TabiGO AI
             </div>
             <div class="nav-links">
@@ -50,7 +50,7 @@
             <div>
                 <div class="badge">
                     <i class="fas fa-circle"></i>
-                    Multi-Agent Travel Planner-Powered by LangGraph
+                    Multi-Agent Travel Planner · Powered by LangGraph
                 </div>
 
                 <h1>
@@ -58,8 +58,8 @@
                 </h1>
 
                 <p>
-                    Search flights, discover hotels, and generate a complete day‑by‑day itinerary in seconds — with a
-                    multi‑agent LangGraph system that handles the details for you.
+                    Search flights, discover hotels, check live destination weather, and plot a geo‑clustered day‑by‑day
+                    itinerary in seconds — with a multi-agent LangGraph system that handles the details for you.
                 </p>
 
                 <div class="hero-actions">
@@ -113,7 +113,7 @@
 
             <div class="trip-grid">
                 <article class="trip-card"
-                    onclick="setPrompt('Plan a complete 7 days Japan trip from Bangladesh including flights, hotels and sightseeing under 2 lakhs.'); document.getElementById('planner').scrollIntoView({behavior:'smooth'});">
+                    onclick="setPrompt('Plan a complete 7 days Japan trip from India including flights, hotels and sightseeing under 2 lakhs.'); document.getElementById('planner').scrollIntoView({behavior:'smooth'});">
                     <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=800&q=80"
                         alt="Japan">
                     <span class="trip-price">from ৳1.8L</span>
@@ -124,7 +124,7 @@
                 </article>
 
                 <article class="trip-card"
-                    onclick="setPrompt('Plan a 5 days Dubai trip from Dhaka with flights, hotels and sightseeing.'); document.getElementById('planner').scrollIntoView({behavior:'smooth'});">
+                    onclick="setPrompt('Plan a 5 days Dubai trip from Kolkata with flights, hotels and sightseeing.'); document.getElementById('planner').scrollIntoView({behavior:'smooth'});">
                     <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80"
                         alt="Dubai">
                     <span class="trip-price">from ৳85k</span>
@@ -135,7 +135,7 @@
                 </article>
 
                 <article class="trip-card"
-                    onclick="setPrompt('Plan a 7 days Thailand trip from Bangladesh with budget hotels and sightseeing.'); document.getElementById('planner').scrollIntoView({behavior:'smooth'});">
+                    onclick="setPrompt('Plan a 7 days Thailand trip from India with budget hotels and sightseeing.'); document.getElementById('planner').scrollIntoView({behavior:'smooth'});">
                     <img src="https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=800&q=80"
                         alt="Thailand">
                     <span class="trip-price">from ৳72k</span>
@@ -146,7 +146,7 @@
                 </article>
 
                 <article class="trip-card"
-                    onclick="setPrompt('Plan a 6 days Turkey trip from Bangladesh including Istanbul, Cappadocia, flights and hotels.'); document.getElementById('planner').scrollIntoView({behavior:'smooth'});">
+                    onclick="setPrompt('Plan a 6 days Turkey trip from India including Istanbul, Cappadocia, flights and hotels.'); document.getElementById('planner').scrollIntoView({behavior:'smooth'});">
                     <img src="https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=800&q=80"
                         alt="Turkey">
                     <span class="trip-price">from ৳1.1L</span>
@@ -230,8 +230,31 @@
                 </div>
             </div>
 
+            <!-- Live Weather Banner (Populated dynamically) -->
+            <div id="weatherCard" class="hidden"
+                style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 14px; padding: 16px 20px; margin-bottom: 20px;">
+                <h3 style="margin: 0 0 8px 0; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-cloud-sun-rain" style="color: #0284c7;"></i> Live Destination Weather Forecast
+                </h3>
+                <pre id="weatherBox"
+                    style="margin: 0; font-family: 'Inter', sans-serif; font-size: 0.9rem; white-space: pre-wrap; line-height: 1.55;"></pre>
+            </div>
+
+            <!-- Geo-Clustered Interactive Map (Populated dynamically) -->
+            <div id="mapCard" class="hidden"
+                style="border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 14px; padding: 16px; margin-bottom: 24px; background: rgba(255, 255, 255, 0.65);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                    <h3 style="margin: 0; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-route" style="color: var(--accent);"></i> Geo-Clustered Route Map
+                    </h3>
+                    <span style="font-size: 0.8rem; opacity: 0.75;">Click colored Day pins (D1, D2...) for landmark details</span>
+                </div>
+                <div id="tripMap" style="height: 400px; width: 100%; border-radius: 10px; z-index: 1;"></div>
+            </div>
+
+            <!-- Printable PDF Itinerary Content -->
             <div id="pdfContent" class="pdf-content">
-                <h1 class="pdf-title">AI Travel Plan</h1>
+                <h1 class="pdf-title">TabiGo AI Travel Plan</h1>
                 <div id="resultBox" class="result-box"></div>
             </div>
 
@@ -242,8 +265,11 @@
     </main>
 
     <footer>
-        Built with FastAPI, LangGraph, Groq, PostgreSQL, Tavily &amp; AviationStack · Crafted for wanderers ✈️
+        Built with FastAPI, LangGraph, Groq, PostgreSQL, Tavily, AviationStack, OpenWeather &amp; Geoapify · Crafted for wanderers ✈️
     </footer>
+
+    <!-- Leaflet Interactive Map JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <!-- Markdown Renderer -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>

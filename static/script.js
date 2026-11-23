@@ -1,5 +1,6 @@
 let currentThreadId = localStorage.getItem("travel_thread_id") || null;
 let latestAnswerMarkdown = "";
+let tripMap = null;
 
 function setPrompt(text) {
     document.getElementById("userInput").value = text;
@@ -34,21 +35,103 @@ function hideError() {
     errorBox.textContent = "";
 }
 
-function showResult(answer, threadId) {
-    latestAnswerMarkdown = answer;
+function renderWeather(weatherText) {
+    const weatherCard = document.getElementById("weatherCard");
+    const weatherBox = document.getElementById("weatherBox");
+
+    if (!weatherCard || !weatherBox) return;
+
+    if (weatherText && weatherText.trim()) {
+        weatherBox.textContent = weatherText.trim();
+        weatherCard.classList.remove("hidden");
+    } else {
+        weatherCard.classList.add("hidden");
+        weatherBox.textContent = "";
+    }
+}
+
+function renderTripMap(locations) {
+    const mapCard = document.getElementById("mapCard");
+    if (!mapCard) return;
+
+    if (!locations || !Array.isArray(locations) || locations.length === 0 || typeof L === "undefined") {
+        mapCard.classList.add("hidden");
+        return;
+    }
+
+    mapCard.classList.remove("hidden");
+
+    if (tripMap) {
+        tripMap.remove();
+        tripMap = null;
+    }
+
+    const dayColors = ["#38bdf8", "#a855f7", "#2dd4bf", "#f59e0b", "#f43f5e", "#22c55e", "#6366f1"];
+
+    tripMap = L.map("tripMap").setView([locations[0].lat, locations[0].lon], 12);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(tripMap);
+
+    const latLngs = [];
+
+    locations.forEach((loc) => {
+        const point = [loc.lat, loc.lon];
+        latLngs.push(point);
+
+        const dayNum = loc.day || 1;
+        const color = dayColors[(dayNum - 1) % dayColors.length];
+
+        const dayIcon = L.divIcon({
+            className: "custom-day-pin",
+            html: `<div style="background:${color}; color:#060d18; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; border:2px solid #ffffff; box-shadow:0 4px 10px rgba(0,0,0,0.45);">D${dayNum}</div>`,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+        });
+
+        L.marker(point, { icon: dayIcon })
+            .addTo(tripMap)
+            .bindPopup(`<strong>Day ${dayNum}</strong><br>${loc.place}`);
+    });
+
+    if (latLngs.length > 1) {
+        const polyline = L.polyline(latLngs, {
+            color: "#38bdf8",
+            weight: 3,
+            dashArray: "6, 6",
+            opacity: 0.85
+        }).addTo(tripMap);
+
+        tripMap.fitBounds(polyline.getBounds(), { padding: [40, 40] });
+    } else {
+        tripMap.setView(latLngs[0], 13);
+    }
+
+    // Recalculate Leaflet container dimensions after un-hiding #resultSection
+    setTimeout(() => {
+        if (tripMap) tripMap.invalidateSize();
+    }, 180);
+}
+
+function showResult(data) {
+    latestAnswerMarkdown = data.answer;
 
     const resultSection = document.getElementById("resultSection");
     const resultBox = document.getElementById("resultBox");
     const threadInfo = document.getElementById("threadInfo");
 
     if (typeof marked !== "undefined") {
-        resultBox.innerHTML = marked.parse(answer);
+        resultBox.innerHTML = marked.parse(data.answer);
     } else {
-        resultBox.innerText = answer;
+        resultBox.innerText = data.answer;
     }
 
-    threadInfo.textContent = `Thread ID: ${threadId}`;
+    threadInfo.textContent = `Thread ID: ${data.thread_id}`;
     resultSection.classList.remove("hidden");
+
+    renderWeather(data.weather_results);
+    renderTripMap(data.map_locations);
 
     setTimeout(() => {
         resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -87,7 +170,7 @@ async function sendMessage() {
         currentThreadId = data.thread_id;
         localStorage.setItem("travel_thread_id", currentThreadId);
 
-        showResult(data.answer, data.thread_id);
+        showResult(data);
 
     } catch (error) {
         showError(error.message);
@@ -128,7 +211,7 @@ function downloadPDF() {
 
     const options = {
         margin: 0.5,
-        filename: "tripmate-ai-travel-plan.pdf",
+        filename: "tabigo-ai-travel-plan.pdf",
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
         jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
