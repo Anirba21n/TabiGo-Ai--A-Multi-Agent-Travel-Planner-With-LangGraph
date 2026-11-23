@@ -1,4 +1,4 @@
-# TripMate-Ai---A-Multi-Agent-Travel-Planner-With-LangGraph
+# TabiGO-Ai---A-Multi-Agent-Travel-Planner-With-LangGraph
 
 ## How to run?
 1. create the virtual Eviroment 
